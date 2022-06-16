@@ -394,7 +394,6 @@ def main():
     tok_logger = transformers.utils.logging.get_logger("transformers.tokenization_utils_base")
 
     def tokenize_function(examples):
-        print(examples[text_column_name])
         with CaptureLogger(tok_logger) as cl:
             output = tokenizer(examples[text_column_name])
         # clm input could be much much longer than block_size
@@ -463,6 +462,10 @@ def main():
             load_from_cache_file=not data_args.overwrite_cache,
             desc=f"Grouping texts in chunks of {block_size}",
         )
+
+    print(raw_datasets)
+    print(tokenized_datasets)
+    print(lm_datasets)
 
     if training_args.do_train:
         if "train" not in tokenized_datasets:
