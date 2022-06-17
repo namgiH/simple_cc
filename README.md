@@ -1,6 +1,7 @@
 # Simple experiments for Cycle Consistency
 Try 
-```python run_clm.py \
+```
+python run_clm.py \
     --model_name_or_path gpt2 \
     --train_file data/en_bart_ncc/test_encoded.csv \
     --validation_file data/en_bart_ncc/test_encoded.csv \
