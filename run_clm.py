@@ -28,6 +28,8 @@ import sys
 from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
+import numpy as np
+import nltk
 
 import datasets
 from datasets import load_dataset, load_metric
@@ -494,7 +496,7 @@ def main():
         #metric = load_metric("accuracy")
 
         def compute_metrics(eval_preds):
-            preds, labels = eval_preds
+            predictions, labels = eval_preds
             # preds have the same shape as the labels, after the argmax(-1) has been calculated
             # by preprocess_logits_for_metrics but we need to shift the labels
             #labels = labels[:, 1:].reshape(-1)
