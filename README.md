@@ -14,3 +14,11 @@ python run_clm.py \
     --evaluation_strategy epoch   
 ```
 , after `pip install -r reqs.txt --extra-index-url https://download.pytorch.org/whl/cu113`.
+
+After training, Run
+```
+python eval.py \
+    --model_path MODEL_DIRECTORY \
+    --data_path TEST_DATA_DIRECTORY
+```
+to generate plots from test data and calculrate rouge scores. 
