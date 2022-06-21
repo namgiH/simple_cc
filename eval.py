@@ -1,10 +1,9 @@
 from transformers import pipeline
 from rouge_score import rouge_scorer
 import argparse, json
-
 def main(args):
     scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
-    model = pipeline('text-generation', model=args.model_path)
+    model = pipeline('text-generation', device=0, model=args.model_path)
     scores = []
     fw_res = open('{}/test_generation.txt'.format(args.model_path), 'w')
     for line in open('{}/test_encoded.csv'.format(args.data_path)):
@@ -26,14 +25,15 @@ def main(args):
         aver_score[metric]['recall'] = 0
         aver_score[metric]['f1'] = 0
     for i in scores:
-        for metric in scores[i]:
-            aver_score[metric]['precision'] += scores[i][metric][0]
-            aver_score[metric]['recall'] += scores[i][metric][1]
-            aver_score[metric]['f1'] += scores[i][metric][2]
-    aver_score[metric]['precision'] /= len(scores)
-    aver_score[metric]['recall'] /= len(scores)
-    aver_score[metric]['f1'] /= len(scores)
-    json.dump(aver_score, open('{}/text_rouge.json', 'w'))
+        for metric in i:
+            aver_score[metric]['precision'] += i[metric][0]
+            aver_score[metric]['recall'] += i[metric][1]
+            aver_score[metric]['f1'] += i[metric][2]
+    for metric in aver_score:
+        aver_score[metric]['precision'] /= len(scores)
+        aver_score[metric]['recall'] /= len(scores)
+        aver_score[metric]['f1'] /= len(scores)
+    json.dump(aver_score, open('{}/text_rouge.json'.format(args.model_path, 'w'))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
