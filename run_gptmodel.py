@@ -1,3 +1,4 @@
+[hng88@hlogin01 simple_cc]$ cat run_gptmodel.py 
 from collections import defaultdict
 import os, sys, itertools, json
 import datasets
@@ -371,7 +372,7 @@ gen_optimizer = AdamW(itertools.chain(gen_model.parameters(), sum_model.paramete
 #gen_optimizer = AdamW(gen_model.parameters(), lr=training_args.learning_rate)
 optimizers.append(gen_optimizer)
 #sum_optimizer = AdamW(itertools.chain(sum_model.parameters(), gen_model.parameters(), sum_model.parameters()), lr=training_args.learning_rate)
-sum_optimizer = AdamW(itertools.chain(gen_model.parameters(), sum_model.parameters()), lr=training_args.learning_rate)
+#sum_optimizer = AdamW(itertools.chain(gen_model.parameters(), sum_model.parameters()), lr=training_args.learning_rate)
 optimizers.append(sum_optimizer)
 num_epochs = int(training_args.num_train_epochs)
 num_training_steps = int(num_epochs * len(gen_train_dataloader))
@@ -406,11 +407,12 @@ for epoch in range(num_epochs):
 
         # first: outline -> plot generation
         gen_outputs = gen_model(**gens)
+        gen_first_loss = gen_outputs.loss
+
+        # second: predicted plot -> outline summarization
         gen_pred = torch.argmax(gen_outputs.logits, dim=-1)
         #gen_pred = gen_pred.cpu().detach().numpy()
         gen_pred_sent = gen_tokenizer.batch_decode(gen_pred, skip_special_tokens=True)
-
-        # second: predicted plot -> outline summarization
         sum_inputs = sum_tokenizer(gen_pred_sent, return_tensors='pt', max_length=1024, padding="max_length", truncation=True)
         sum_inputs['labels'] = sums['labels']
         sum_inputs.to(device)
@@ -421,20 +423,15 @@ for epoch in range(num_epochs):
         sum_pred = torch.argmax(sum_outputs.logits, dim=-1)
         #sum_pred = sum_pred.cpu().detach().numpy()
         sum_pred_sent = sum_tokenizer.batch_decode(sum_pred, skip_special_tokens=True)
-
         gen_inputs = gen_tokenizer(sum_pred_sent, return_tensors='pt', max_length=1024, padding='max_length', truncation=True)
         gen_inputs['labels'] = gens['labels']
         gen_inputs.to(device)
         gen_outputs = gen_model(**gen_inputs)
-        gen_loss = gen_outputs.loss
-
-        # logging at every 1000 iterations
-        if progress_bar.n % 1000 == 0:
-            logger.info('gen_loss:{}'.format(gen_loss))
-            logger.info('sum_loss:{}'.format(sum_loss))
+        gen_second_loss = gen_outputs.loss
 
         # backward
         gen_optimizer.zero_grad()
+        gen_loss = gen_first_loss + sum_loss + gen_second_loss
         gen_loss.backward()
         gen_optimizer.step()
         #sum_optimizer.zero_grad()
