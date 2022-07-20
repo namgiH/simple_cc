@@ -1,4 +1,3 @@
-[hng88@hlogin01 simple_cc]$ cat run_gptmodel.py 
 from collections import defaultdict
 import os, sys, itertools, json
 import datasets
